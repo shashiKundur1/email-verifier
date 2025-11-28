@@ -1,0 +1,66 @@
+[
+  {
+    "email": "support@schoopla.com.au",
+    "can_connect_smtp": true,
+    "is_deliverable": true,
+    "is_catch_all": false,
+    "has_full_inbox": false,
+    "is_disabled": false
+  },
+  {
+    "email": "thisuserdoesnotexist8888@gmail.com",
+    "can_connect_smtp": true,
+    "is_deliverable": false,
+    "is_catch_all": false,
+    "has_full_inbox": false,
+    "is_disabled": false
+  },
+  {
+    "email": "support@google.com",
+    "can_connect_smtp": true,
+    "is_deliverable": true,
+    "is_catch_all": true,
+    "has_full_inbox": false,
+    "is_disabled": false
+  },
+  {
+    "email": "admin@microsoft.com",
+    "can_connect_smtp": true,
+    "is_deliverable": false,
+    "is_catch_all": false,
+    "has_full_inbox": false,
+    "is_disabled": false
+  },
+  {
+    "email": "test@example.com",
+    "can_connect_smtp": false,
+    "is_deliverable": false,
+    "is_catch_all": false,
+    "has_full_inbox": false,
+    "is_disabled": false
+  },
+  {
+    "email": "noreply@apple.com",
+    "can_connect_smtp": false,
+    "is_deliverable": false,
+    "is_catch_all": false,
+    "has_full_inbox": false,
+    "is_disabled": false
+  },
+  {
+    "email": "contact@github.com",
+    "can_connect_smtp": true,
+    "is_deliverable": true,
+    "is_catch_all": true,
+    "has_full_inbox": false,
+    "is_disabled": false
+  },
+  {
+    "email": "hello@nonexistentdomain12345.com",
+    "can_connect_smtp": false,
+    "is_deliverable": false,
+    "is_catch_all": false,
+    "has_full_inbox": false,
+    "is_disabled": false
+  }
+]

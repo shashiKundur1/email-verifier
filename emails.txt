@@ -1,0 +1,9 @@
+support@schoopla.com.au
+thisuserdoesnotexist8888@gmail.com
+support@google.com
+admin@microsoft.com
+test@example.com
+invalid-syntax-email
+noreply@apple.com
+contact@github.com
+hello@nonexistentdomain12345.com
