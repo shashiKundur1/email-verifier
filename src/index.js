@@ -1,51 +1,45 @@
-const constants = require("./config/constants");
-const { getMXRecords } = require("./core/dns");
-const { connectToSmtp, closeSocket } = require("./core/connection");
+const { parseSmtpResponse } = require("./core/parser");
 
 async function main() {
-  console.log("--- Email Verifier Backend (Phase 4 Test: SOCKS5 Logic) ---");
+  console.log("--- Email Verifier Backend (Phase 5 Test: Parser) ---");
 
-  const targetDomain = "gmail.com";
+  const testCases = [
+    {
+      name: "Simple Success",
+      raw: "250 OK\r\n",
+    },
+    {
+      name: "Multi-line EHLO (Google Style)",
+      raw: "250-mx.google.com at your service\r\n250-SIZE 35882577\r\n250-8BITMIME\r\n250-STARTTLS\r\n250-ENHANCEDSTATUSCODES\r\n250 CHUNKING\r\n",
+    },
+    {
+      name: "Permanent Failure with Enhanced Code",
+      raw: "550 5.1.1 The email account that you tried to reach does not exist.\r\n",
+    },
+    {
+      name: "Incomplete Buffer (Should return null)",
+      raw: "250-mx.google.com at your service\r\n250-SIZE 35882577\r\n",
+    },
+  ];
 
-  try {
-    // 1. Get MX
-    const mxResult = await getMXRecords(targetDomain);
-    const topMx = mxResult.records[0];
+  testCases.forEach((test, index) => {
+    console.log(`\nTest ${index + 1}: ${test.name}`);
+    const result = parseSmtpResponse(test.raw);
 
-    // Test 1: Direct Connection (Should Work)
-    console.log(`\n1. Testing DIRECT connection to ${topMx.exchange}...`);
-    const directResult = await connectToSmtp(topMx.exchange, 25);
-
-    if (directResult.success) {
-      console.log(`   ✅ Direct Success: ${directResult.banner}`);
-      await closeSocket(directResult.socket);
+    if (result) {
+      console.log(
+        `   ✅ Parsed: Code ${result.code} (${result.classification})`
+      );
+      if (result.enhancedCode)
+        console.log(`      Enhanced Code: ${result.enhancedCode}`);
+      console.log(`      Message: "${result.message.substring(0, 50)}..."`);
+      console.log(`      Lines: ${result.lines.length}`);
     } else {
-      console.log(`   ❌ Direct Failed: ${directResult.error.message}`);
+      console.log(
+        `   ⚠️ Result: Incomplete/Null (Expected for incomplete buffer)`
+      );
     }
-
-    // Test 2: Proxy Connection (Should Fail Gracefully if no proxy exists)
-    // We will simulate a fake local proxy to trigger a connection refused error
-    console.log(`\n2. Testing PROXY connection (Simulating 127.0.0.1:9050)...`);
-    const proxyConfig = {
-      host: "127.0.0.1",
-      port: 9050, // Common Tor port (likely closed)
-    };
-
-    const proxyResult = await connectToSmtp(topMx.exchange, 25, {
-      proxy: proxyConfig,
-    });
-
-    if (proxyResult.success) {
-      console.log(`   ✅ Proxy Success: ${proxyResult.banner}`);
-      await closeSocket(proxyResult.socket);
-    } else {
-      console.log(`   ✅ Proxy Failed Gracefully (Expected):`);
-      console.log(`      Message: ${proxyResult.error.message}`);
-      console.log(`      Type: ${proxyResult.error.type}`);
-    }
-  } catch (err) {
-    console.error(err);
-  }
+  });
 }
 
 main().catch(console.error);
