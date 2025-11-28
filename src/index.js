@@ -1,45 +1,49 @@
-const { parseSmtpResponse } = require("./core/parser");
+/**
+ * src/index.js
+ * Main Entry Point for Email Verifier CLI
+ */
+
+const { verifyEmail } = require("./core/verifier");
+const { formatOutput } = require("./utils/mapper");
 
 async function main() {
-  console.log("--- Email Verifier Backend (Phase 5 Test: Parser) ---");
+  // 1. Parse CLI Arguments
+  const args = process.argv.slice(2);
+  if (args.length === 0) {
+    console.error("Usage: node src/index.js <email>");
+    process.exit(1);
+  }
 
-  const testCases = [
-    {
-      name: "Simple Success",
-      raw: "250 OK\r\n",
-    },
-    {
-      name: "Multi-line EHLO (Google Style)",
-      raw: "250-mx.google.com at your service\r\n250-SIZE 35882577\r\n250-8BITMIME\r\n250-STARTTLS\r\n250-ENHANCEDSTATUSCODES\r\n250 CHUNKING\r\n",
-    },
-    {
-      name: "Permanent Failure with Enhanced Code",
-      raw: "550 5.1.1 The email account that you tried to reach does not exist.\r\n",
-    },
-    {
-      name: "Incomplete Buffer (Should return null)",
-      raw: "250-mx.google.com at your service\r\n250-SIZE 35882577\r\n",
-    },
-  ];
+  const targetEmail = args[0];
 
-  testCases.forEach((test, index) => {
-    console.log(`\nTest ${index + 1}: ${test.name}`);
-    const result = parseSmtpResponse(test.raw);
+  // 2. Run Verification
+  // console.log(`Verifying: ${targetEmail}...`);
 
-    if (result) {
-      console.log(
-        `   ✅ Parsed: Code ${result.code} (${result.classification})`
-      );
-      if (result.enhancedCode)
-        console.log(`      Enhanced Code: ${result.enhancedCode}`);
-      console.log(`      Message: "${result.message.substring(0, 50)}..."`);
-      console.log(`      Lines: ${result.lines.length}`);
-    } else {
-      console.log(
-        `   ⚠️ Result: Incomplete/Null (Expected for incomplete buffer)`
-      );
-    }
-  });
+  try {
+    const internalResult = await verifyEmail(targetEmail, {
+      senderEmail: "verify@example.com", // Replace with your domain in production
+      helo: "example.com",
+    });
+
+    // 3. Format Output
+    const jsonOutput = formatOutput(internalResult);
+
+    // 4. Print JSON (Pure JSON for piping)
+    console.log(JSON.stringify(jsonOutput, null, 2));
+  } catch (err) {
+    // Fallback JSON for catastrophic errors
+    console.log(
+      JSON.stringify(
+        {
+          error: err.message,
+          can_connect_smtp: false,
+          is_deliverable: false,
+        },
+        null,
+        2
+      )
+    );
+  }
 }
 
-main().catch(console.error);
+main();
